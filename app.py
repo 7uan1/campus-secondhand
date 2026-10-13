@@ -24,6 +24,69 @@ login_manager.login_message = '请先登录'
 
 DATABASE_URL = os.environ.get('DATABASE_URL', '')
 
+def create_tables():
+    conn = psycopg2.connect(DATABASE_URL)
+    cur = conn.cursor()
+    sql_text = """
+    CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(50) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        nickname VARCHAR(50) NOT NULL,
+        school VARCHAR(100) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS items (
+        id SERIAL PRIMARY KEY,
+        seller_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        title VARCHAR(100) NOT NULL,
+        category VARCHAR(20) NOT NULL,
+        price INTEGER NOT NULL,
+        condition VARCHAR(20) NOT NULL,
+        description TEXT,
+        image_base64 TEXT,
+        status VARCHAR(10) NOT NULL DEFAULT '在售',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS messages (
+        id SERIAL PRIMARY KEY,
+        item_id INTEGER NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        content VARCHAR(500) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS favorites (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        item_id INTEGER NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, item_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS applications (
+        id SERIAL PRIMARY KEY,
+        item_id INTEGER NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+        buyer_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        seller_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        status VARCHAR(20) NOT NULL DEFAULT '申请中',
+        message TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    """
+    cur.execute(sql_text)
+    conn.commit()
+    cur.close()
+    conn.close()
+
+# 启动自动建表，表已存在不会报错
+try:
+    create_tables()
+except Exception as err:
+    print("建表提示：", err)
+
 
 def get_db():
     conn = psycopg2.connect(DATABASE_URL)

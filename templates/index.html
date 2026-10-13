@@ -1,11 +1,139 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>校园二手交易平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 16px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .nav a {
+            color: #fff;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom:30px;
+        }
+        .search-bar input {
+            flex:1;
+            padding:10px;
+            border:1px solid #ccc;
+            border-radius:4px;
+        }
+        .search-bar select, .search-bar button {
+            padding:10px 14px;
+            border-radius:4px;
+            border:1px solid #ccc;
+        }
+        .search-bar button {
+            background-color:#3498db;
+            color:white;
+            border:none;
+            cursor:pointer;
+        }
+        .item-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px,1fr));
+            gap:24px;
+        }
+        .item-card {
+            border:1px solid #eee;
+            border-radius:8px;
+            overflow:hidden;
+            box-shadow: 0 2px 6px #00000010;
+        }
+        .item-card .body {
+            padding:14px;
+        }
+        .item-card h3 {
+            font-size:18px;
+            margin-bottom:8px;
+        }
+        .price {
+            color:#e74c3c;
+            font-weight:bold;
+            font-size:17px;
+            margin-bottom:8px;
+        }
+        .category {
+            font-size:13px;
+            color:#777;
+        }
+        .empty-tip {
+            text-align:center;
+            color:#888;
+            padding:40px;
+        }
+    </style>
 </head>
 <body>
-    <h1>校园二手平台首页</h1>
-    <p>✅ 模板加载成功！</p>
+<header>
+    <div class="logo">校园二手平台</div>
+    <div class="nav">
+        <a href="/">首页</a>
+        <a href="/publish">发布商品</a>
+        <a href="/my">我的商品</a>
+        {% if session.user_id %}
+            <span>欢迎 {{session.username}}</span>
+            <a href="/logout">退出登录</a>
+        {% else %}
+            <a href="/login">登录</a>
+            <a href="/register">注册</a>
+        {% endif %}
+    </div>
+</header>
+<div class="container">
+    <form class="search-bar" method="get" action="/">
+        <input type="text" name="keyword" placeholder="搜索商品名称" value="{{keyword}}">
+        <select name="category">
+            <option value="">全部分类</option>
+            {% for c in categories %}
+                <option value="{{c.id}}" {% if category == c.id %}selected{% endif %}>{{c.name}}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">搜索</button>
+    </form>
+
+    <div class="item-list">
+        {% if items and items.length >0 %}
+            {% for item in items %}
+            <div class="item-card">
+                <div class="body">
+                    <h3><a href="/detail/{{shturl.}}" style="color:#222;text-decoration:none">{{item.title}}</a></h3>
+                    <div class="price">¥{{item.price}}</div>
+                    <div class="category">分类：{{item.category_name}}</div>
+                    <p style="font-size:14px;color:#555;margin-top:8px">{{item.description[:60]}}...</p>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-tip">暂无商品，快去发布第一件二手物品吧！</div>
+        {% endif %}
+    </div>
+</div>
 </body>
 </html>

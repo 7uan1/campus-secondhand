@@ -31,7 +31,7 @@ def create_tables():
     CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         username VARCHAR(50) UNIQUE NOT NULL,
-        password_hash VARCHAR(255) NOT NULL,
+        password_hash VARCHAR(256) NOT NULL,
         nickname VARCHAR(50) NOT NULL,
         school VARCHAR(100) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -80,12 +80,6 @@ def create_tables():
     conn.commit()
     cur.close()
     conn.close()
-
-# 启动自动建表，表已存在不会报错
-try:
-    create_tables()
-except Exception as err:
-    print("建表提示：", err)
 
 
 def get_db():
@@ -150,6 +144,12 @@ app.jinja_env.filters['time_ago'] = time_ago
 
 @app.route('/')
 def index():
+    # 首次访问首页执行建表，表存在不会重复创建
+    try:
+        create_tables()
+    except Exception as err:
+        print("建表提示：", err)
+
     keyword = request.args.get('keyword', '').strip()
     category = request.args.get('category', '').strip()
     query = "SELECT i.*, u.nickname as seller_nickname, u.school as seller_school FROM items i JOIN users u ON i.seller_id = u.id WHERE i.status = '在售'"
@@ -452,3 +452,4 @@ def profile():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
+
